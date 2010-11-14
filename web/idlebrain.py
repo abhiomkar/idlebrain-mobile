@@ -5,6 +5,8 @@
 
 import web
 import sys
+import re
+from BeautifulSoup import BeautifulSoup
 
 sys.path.append(sys.path[0] + '/../config')
 
@@ -30,14 +32,18 @@ class IdlebrainIndex:
 		
 class IdlebrainLatestUpdates:
 	def GET(self):
-		query = """
-			select html from pages where url_m = 'foobarm'
-			"""
-		className = self.__class__.__name__
+		web.header('Content-Type', 'text/html')
+		# className = self.__class__.__name__
 		try:
-			return db.select('pages', where="class='"+className+"'")[0]['html']
+			html = db.select('pages', where="url='/'")[0]['html']
 		except IndexError:
-			return "Couldn't find the page"
-		# return render.IdlebrainIndex()
+			return render.ErrorPage() # "Couldn't find the page"
+
+		soup = BeautifulSoup(html)
+		trTag = soup.find(text=re.compile("Latest")).findNext('tr')
+
+		# print trTag
+		return repr(trTag)
+
 if __name__ == "__main__":
     app.run()
